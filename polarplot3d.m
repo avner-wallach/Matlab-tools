@@ -413,6 +413,7 @@ else
    T(isnan(T))=-1e-3;
    [Xi,Yi,Zi] = pol2cart(theta,rad,T);               % convert to Cartesian
 end
+Zi = ones(size(Zi));                                             % z's == input data
 
 CMP=colormap;
 % CMP(end,:)=[0 0 0]; %black for NaN
