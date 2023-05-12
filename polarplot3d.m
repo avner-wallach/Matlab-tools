@@ -176,7 +176,7 @@ glst = {'-',':','-.','--'};
 % Set up property structure with default values
 p.angularrange   = [0 2*pi];   % angular range
 p.radialrange    = [0 1];      % radial  range
-p.plottype       = 'image';    % surface plot, no rectangular grid
+p.plottype       = 'surfa';    % surface plot, no rectangular grid
 p.meshscale      = [.5 .5];      % no mesh scaling
 p.polargrid      = {10 8};     % number of radial and azimuthal sections
 p.gridscale      = [40 40];    % 40x scaling for smooth grid interpolation
@@ -399,21 +399,21 @@ Ci = p.colordata;                                    % colormap
 if isequal(p.meshscale,[1 1])                        % uniform scaling
    Xi = rho * cos(angl.');                           % matrix of x's
    Yi = rho * sin(angl.');                           % matrix of y's
-
+   Ai = Ap;
 % Create a new grid and interpolation data
 else
    q    = fix([Zrows Zcols]./p.meshscale);           % new mesh size
    rho  = linspace(Rmin,Rmax,q(1));                  %     radius vector
    angl = linspace(Tmin,Tmax,q(2));                  %     angle  vector
    [theta,rad] = meshgrid(angl,rho);                 % create polar grid
-   T  = interp2cyc(xx,yy,Zp,theta,rad,p.interpmethod);  % interpolate Zp to grid
-   Ai = interp2cyc(xx,yy,Ap,theta,rad,p.interpmethod);  % interpolate Ap to grid
-   Ci = interp2cyc(xx,yy,Ci,theta,rad,p.interpmethod);  % interpolate color
+   T  = interp2cyc(xx,yy,Zp,theta,rad,1);%p.interpmethod);  % interpolate Zp to grid
+   Ai = interp2cyc(xx,yy,Ap,theta,rad,0);%p.interpmethod);  % interpolate Ap to grid
+   Ci = interp2cyc(xx,yy,Ci,theta,rad,1);%p.interpmethod);  % interpolate color
 %    Ci(isnan(T))=ceil(max(Ci(:)))+1;
    T(isnan(T))=-1e-3;
    [Xi,Yi,Zi] = pol2cart(theta,rad,T);               % convert to Cartesian
 end
-Zi = ones(size(Zi));                                             % z's == input data
+Zi = zeros(size(Zi));                                             % z's == input data
 
 CMP=colormap;
 % CMP(end,:)=[0 0 0]; %black for NaN
@@ -463,7 +463,7 @@ switch p.plottype
                    set(a,'Zcolor',[0.8 0.8 0.8]);
 end
 if ~isempty(p.plotprops), set(g,p.plotprops{:}); end
-colormap(CMP);
+colormap(gca,CMP);
 set(gca,'View',[0,90]);
 %-- Plot the polar axis
 
@@ -654,7 +654,12 @@ function T=interp2cyc(xx,yy,Zp,theta,rad,interpmethod)
         theta...
         theta+(max(theta(:)-min(theta(:))+mean(diff(theta(1,:)))))];        
     rr=repmat(rad,1,3);
-    TT=interp2(xxx,yyy,ZZ,thth,rr,'linear');
+    if(interpmethod)
+        F=scatteredInterpolant(xxx(~isnan(ZZ)),yyy(~isnan(ZZ)),ZZ(~isnan(ZZ)),'linear','none');
+        TT=F(thth,rr);        
+    else
+        TT=interp2(xxx,yyy,ZZ,thth,rr,'linear');    
+    end
     xl=size(theta,2);   
     T=TT(:,(xl+1):2*xl);
 end

@@ -1,4 +1,4 @@
-function [ z] = nanzscore( z,dim)
+function [z,m,s] = nanzscore( z,dim)
 %NANZSCORE like zscore ignoring nans
 if(nargin==1)
     dim=1;
@@ -8,9 +8,9 @@ if(dim==2)
 end
 
 for i=1:size(z,2)
-    m=nanmean(z(:,i));
-    s=nanstd(z(:,i));
-    z(:,i)=(z(:,i)-m)/s;
+    m(i)=nanmean(z(:,i));
+    s(i)=nanstd(z(:,i));
+    z(:,i)=(z(:,i)-m(i))/s(i);
 end
 
 if(dim==2)
